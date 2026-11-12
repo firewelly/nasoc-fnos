@@ -1,0 +1,46 @@
+[
+    {
+        "stepTitle": "配置 NasOC（内置 OpenCode 编程终端）",
+        "items": [
+            {
+                "type": "tips",
+                "helpText": "项目根目录：存放代码项目的目录，多个用英文逗号分隔（路径内不要含逗号/空格），例如 /vol1/1000/projects,/vol1/1000/work。这些目录按原路径挂载进容器，每个目录在终端里是一个 tab。留空使用默认值 /vol1/1000/nasoc-projects。"
+            },
+            {
+                "type": "text",
+                "field": "nasoc_projects",
+                "label": "项目根目录（多个用逗号分隔）",
+                "rules": [{
+                    "required": false,
+                    "message": "路径错误"
+                }]
+            },
+            {
+                "type": "tips",
+                "helpText": "数据目录：opencode 配置/凭据、会话状态的持久位置，升级保留。默认在应用数据目录（系统盘）；建议指向 SSD 数据卷，如 /vol1/1000/nasoc-data（勿用系统盘/eMMC）。留空使用默认值。"
+            },
+            {
+                "type": "text",
+                "field": "nasoc_data_dir",
+                "label": "数据目录（可选）",
+                "rules": [{
+                    "required": false,
+                    "message": "路径错误"
+                }]
+            },
+            {
+                "type": "tips",
+                "helpText": "访问口令：设置后打开终端需输入（挑战-应答方式，明文口令不出浏览器、不进 URL/日志）；远程访问时建议设置，局域网内可留空。模型 API Key 不在安装时填写——装好后打开终端按 opencode 提示配置（凭据保存在数据目录，永不进安装包/日志）。"
+            },
+            {
+                "type": "text",
+                "field": "nasoc_pin",
+                "label": "访问口令 PIN（可选）",
+                "rules": [{
+                    "required": false,
+                    "message": "口令错误"
+                }]
+            }
+        ]
+    }
+]
