@@ -85,7 +85,7 @@ def main():
     version = manifest_field("version", "0.1.0")
     ap.add_argument("--image", default="nasoc:%s" % version,
                     help="本机已构建的镜像（默认 nasdsh:<manifest version>）")
-    ap.add_argument("--out", default=os.path.join(HERE, "dist", "nasdsh-fnos-%s.fpk" % version))
+    ap.add_argument("--out", default=os.path.join(HERE, "dist", "nasoc-fnos-%s.fpk" % version))
     args = ap.parse_args()
 
     if not shutil.which("docker"):
