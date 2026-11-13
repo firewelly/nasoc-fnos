@@ -10,10 +10,12 @@
                 "type": "text",
                 "field": "nasoc_projects",
                 "label": "项目根目录（多个用逗号分隔）",
-                "rules": [{
-                    "required": false,
-                    "message": "路径错误"
-                }]
+                "rules": [
+                    {
+                        "required": false,
+                        "message": "路径错误"
+                    }
+                ]
             },
             {
                 "type": "tips",
@@ -23,10 +25,27 @@
                 "type": "text",
                 "field": "nasoc_data_dir",
                 "label": "数据目录（可选）",
-                "rules": [{
-                    "required": false,
-                    "message": "路径错误"
-                }]
+                "rules": [
+                    {
+                        "required": false,
+                        "message": "路径错误"
+                    }
+                ]
+            },
+            {
+                "type": "tips",
+                "helpText": "允许根目录：容器内可读写的顶层目录白名单（冒号分隔），终端里能进入的目录都在其下。默认取第一个项目根目录的顶层目录（如 /vol1/1000/nasoc-projects → /vol1）。留空使用默认值。"
+            },
+            {
+                "type": "text",
+                "field": "nasoc_roots",
+                "label": "允许根目录（可选）",
+                "rules": [
+                    {
+                        "required": false,
+                        "message": "格式错误"
+                    }
+                ]
             },
             {
                 "type": "tips",
@@ -36,10 +55,12 @@
                 "type": "text",
                 "field": "nasoc_pin",
                 "label": "访问口令 PIN（可选）",
-                "rules": [{
-                    "required": false,
-                    "message": "口令错误"
-                }]
+                "rules": [
+                    {
+                        "required": false,
+                        "message": "口令错误"
+                    }
+                ]
             }
         ]
     }

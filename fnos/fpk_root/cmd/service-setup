@@ -15,6 +15,7 @@ APP_PORT="12703"                # 与 manifest service_port / ui/config 保持�
 VAR="${TRIM_PKGVAR}"
 CONF_DATA="${VAR}/data.conf"
 CONF_PROJECTS="${VAR}/projects.conf"
+CONF_ROOTS="${VAR}/roots.conf"     # 允许根目录（容器内可读写白名单）
 CONF_PIN="${VAR}/pin.conf"          # 0600
 
 DEFAULT_DATA="${VAR}/data"
@@ -25,6 +26,16 @@ IMAGE_TGZ="${TRIM_APPDEST}/docker-image.tar.gz"
 _load_conf() {
     # $1=conf 文件 $2=默认值
     if [ -r "$1" ]; then cat "$1"; else printf "%s" "$2"; fi
+}
+
+_top_dir() {
+    # /vol1/1000/xxx -> /vol1
+    printf "%s" "$1" | awk -F/ '{print "/"$2}'
+}
+
+_first_root() {
+    # "a,b,c" -> a
+    printf "%s" "$1" | cut -d, -f1
 }
 
 service_postinst ()
@@ -49,13 +60,22 @@ service_postinst ()
         : > "${CONF_PIN}"
     fi
     chmod 600 "${CONF_PIN}" 2>/dev/null || true
+    # 允许根目录：容器内可读写的顶层目录白名单（sessiond 的 OC_ROOTS）；
+    # 默认为第一个项目根的顶层目录（如 /vol1/1000/nasoc-projects -> /vol1）
+    if [ -n "${nasoc_roots}" ]; then
+        printf "%s" "${nasoc_roots}" > "${CONF_ROOTS}"
+        echo "roots = ${nasoc_roots}" >> "${LOG_FILE}"
+    elif [ ! -r "${CONF_ROOTS}" ]; then
+        P0="$(_load_conf "${CONF_PROJECTS}" "${DEFAULT_PROJECTS}")"
+        printf "%s" "$(_top_dir "$(_first_root "$P0")")" > "${CONF_ROOTS}"
+    fi
 
     # 建目录 + 导入离线镜像（升级时新包内是新版本镜像）
     DATA="$(_load_conf "${CONF_DATA}" "${DEFAULT_DATA}")"
     PROJECTS="$(_load_conf "${CONF_PROJECTS}" "${DEFAULT_PROJECTS}")"
     mkdir -p "${DATA}"
     echo "${PROJECTS}" | tr ',' '\n' | while read -r p; do
-        [ -n "$p" ] && mkdir -p "$p"
+        [ -n "$p" ] && mkdir -p "$p" && chmod 755 "$p" 2>/dev/null || true
     done
     # 容器内以 uid 1000(gid 10) 运行（entrypoint 会再校正一次属主后降权）
     chown -R 1000:10 "${DATA}" 2>/dev/null || true
@@ -85,6 +105,7 @@ start_daemon ()
 
     DATA="$(_load_conf "${CONF_DATA}" "${DEFAULT_DATA}")"
     PROJECTS="$(_load_conf "${CONF_PROJECTS}" "${DEFAULT_PROJECTS}")"
+    ROOTS="$(_load_conf "${CONF_ROOTS}" "")"
     PIN="$(_load_conf "${CONF_PIN}" "")"
 
     if [ -f "${IMAGE_TGZ}" ] && ! docker image inspect "${IMAGE_TAG}" >/dev/null 2>&1; then
@@ -98,7 +119,7 @@ start_daemon ()
 
     mkdir -p "${DATA}"
     echo "${PROJECTS}" | tr ',' '\n' | while read -r p; do
-        [ -n "$p" ] && mkdir -p "$p"
+        [ -n "$p" ] && mkdir -p "$p" && chmod 755 "$p" 2>/dev/null || true
     done
     chown -R 1000:10 "${DATA}" 2>/dev/null || true
     echo "${PROJECTS}" | tr ',' '\n' | while read -r p; do
@@ -107,6 +128,7 @@ start_daemon ()
 
     local -a DOCKER_ARGS=( -d --name "${CONTAINER_NAME}" --restart unless-stopped
                            -p "${APP_PORT}:8080" -e "TZ=Asia/Shanghai" )
+    [ -n "${ROOTS}" ] && DOCKER_ARGS+=( -e "OC_ROOTS=${ROOTS}" )
     [ -n "${PIN}" ] && DOCKER_ARGS+=( -e "TERM_PIN=${PIN}" )
     DOCKER_ARGS+=( -v "${DATA}:/data" )
     # 项目根用逗号分隔（路径内不要带逗号/空格）
