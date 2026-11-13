@@ -3,7 +3,7 @@
         "nasoc.Application": {
             "title": "NasOC 编程终端",
             "desc": "内置 OpenCode 的 NAS AI 编程终端（tmux 持久会话）",
-            "icon": "images/icon-{0}.png",
+            "icon": "images/icon_{0}.png",
             "type": "iframe",
             "port": "12703",
             "url": "/",
